@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Prospera - Site para ajudar no controle financeiro e estabelecer metas e ajudar a alcançar seus objetivos.">
+    <meta name="keywords" content="Prospera, controle financeiro, metas financeiras, objetivos financeiros, planejamento financeiro, finanças pessoais">
+    <meta name="author" content="KaMark14, @kamarques_14, Kauã Marques, Prospera Team">
+    <title>Admin - Prospera</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Página de Login -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box fade-in">
+            <h1 class="login-title">Admin Prospera</h1>
+            <form class="login-form" id="loginForm">
+                <input type="text" placeholder="Usuário Admin" id="adminUsername" required>
+                <input type="password" placeholder="Senha" id="adminPassword" required>
+                <button type="submit">Entrar</button>
+                <div class="login-error" id="loginError">Credenciais inválidas. Tente novamente.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Admin -->
+    <div class="admin-container" id="adminContainer" style="display: none;">
+        <!-- Sidebar -->
+        <div class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">
+                    <i class="fas fa-chart-line" style="font-size: 1.8rem; margin-right: 10px;"></i>
+                    Prospera Admin
+                </div>
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar" id="adminAvatar">A</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-username" id="adminUsernameDisplay">Admin</div>
+                        <div class="sidebar-user-role">Administrador</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <div class="menu-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </div>
+                <div class="menu-item" data-section="users">
+                    <i class="fas fa-users"></i>
+                    Usuários
+                </div>
+                <div class="menu-item" data-section="goals">
+                    <i class="fas fa-bullseye"></i>
+                    Metas
+                </div>
+                <div class="menu-item" data-section="finances">
+                    <i class="fas fa-wallet"></i>
+                    Finanças
+                </div>
+                <div class="menu-item" data-section="profile">
+                    <i class="fas fa-user-circle"></i>
+                    Meu Perfil
+                </div>
+                <div class="menu-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="admin-main">
+            <div class="admin-header">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            </div>
+
+            <section id="dashboard">
+                <!-- Seção Dashboard -->
+                <div class="admin-section active" id="dashboardSection">
+                    <div class="admin-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalUsers">0</div>
+                            <div class="stat-label">Total de Usuários</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="activeGoals">0</div>
+                            <div class="stat-label">Metas Ativas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="completedGoals">0</div>
+                            <div class="stat-label">Metas Concluídas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="newUsers">0</div>
+                            <div class="stat-label">Novos (7 dias)</div>
+                        </div>
+                    </div>
+
+                    <div class="admin-table-container">
+                        <div class="table-header">
+                            <div class="table-title">Metas Recentes</div>
+                            <div class="table-actions">
+                                <button class="table-action-btn">
+                                    <i class="fas fa-search"></i>
+                                    Buscar
+                                </button>
+                                <button class="table-action-btn">
+                                    <i class="fas fa-download"></i>
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Meta</th>
+                                    <th>Usuário</th>
+                                    <th>Data</th>
+                                    <th>Valor</th>
+                                    <th>Progresso</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Economizar para viagem</td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">M</div>
+                                            <div>
+                                                <div class="user-name">Maria Silva</div>
+                                                <div class="user-email">maria@email.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>15/06/2023</td>
+                                    <td>R$ 5.000</td>
+                                    <td>65%</td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Comprar novo notebook</td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">J</div>
+                                            <div>
+                                                <div class="user-name">João Santos</div>
+                                                <div class="user-email">joao@email.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>10/06/2023</td>
+                                    <td>R$ 3.200</td>
+                                    <td>42%</td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="users">
+                <!-- Seção Usuários -->
+                <div class="admin-section" id="usersSection">
+                    <div class="admin-table-container">
+                        <div class="table-header">
+                            <div class="table-title">Todos os Usuários</div>
+                            <div class="table-actions">
+                                <button class="table-action-btn" id="addUserBtn">
+                                    <i class="fas fa-plus"></i>
+                                    Novo Usuário
+                                </button>
+                                <button class="table-action-btn">
+                                    <i class="fas fa-search"></i>
+                                    Buscar
+                                </button>
+                                <button class="table-action-btn">
+                                    <i class="fas fa-download"></i>
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuário</th>
+                                    <th>Email</th>
+                                    <th>Registro</th>
+                                    <th>Metas</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">A</div>
+                                            <div>
+                                                <div class="user-name">Ana Costa</div>
+                                                <div class="user-email">ana@email.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>ana@email.com</td>
+                                    <td>01/01/2023</td>
+                                    <td>5</td>
+                                    <td><span class="status-badge status-active">Ativo</span></td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">P</div>
+                                            <div>
+                                                <div class="user-name">Pedro Alves</div>
+                                                <div class="user-email">pedro@email.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>pedro@email.com</td>
+                                    <td>15/05/2023</td>
+                                    <td>3</td>
+                                    <td><span class="status-badge status-active">Ativo</span></td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="goals">
+                <!-- Seção Metas -->
+                <div class="admin-section" id="goalsSection">
+                    <div class="admin-table-container">
+                        <div class="table-header">
+                            <div class="table-title">Todas as Metas</div>
+                            <div class="table-actions">
+                                <button class="table-action-btn">
+                                    <i class="fas fa-search"></i>
+                                    Buscar
+                                </button>
+                                <button class="table-action-btn">
+                                    <i class="fas fa-download"></i>
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Meta</th>
+                                    <th>Usuário</th>
+                                    <th>Valor Alvo</th>
+                                    <th>Progresso</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Economizar para faculdade</td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">C</div>
+                                            <div>
+                                                <div class="user-name">Carlos Lima</div>
+                                                <div class="user-email">carlos@email.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>R$ 12.000</td>
+                                    <td>78%</td>
+                                    <td><span class="status-badge status-active">Ativo</span></td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Trocar de carro</td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar">M</div>
+                                            <div>
+                                                <div class="user-name">Mariana Oliveira</div>
+                                                <div class="user-email">mariana@email.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>R$ 35.000</td>
+                                    <td>23%</td>
+                                    <td><span class="status-badge status-active">Ativo</span></td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="finances">
+                <!-- Seção Finanças -->
+                <div class="admin-section" id="financesSection">
+                    <div class="admin-table-container">
+                        <div class="table-header">
+                            <div class="table-title">Relatório Financeiro</div>
+                            <div class="table-actions">
+                                <button class="table-action-btn">
+                                    <i class="fas fa-filter"></i>
+                                    Filtrar
+                                </button>
+                                <button class="table-action-btn">
+                                    <i class="fas fa-download"></i>
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Período</th>
+                                    <th>Novos Usuários</th>
+                                    <th>Metas Criadas</th>
+                                    <th>Metas Concluídas</th>
+                                    <th>Valor Total Economizado</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Junho 2023</td>
+                                    <td>124</td>
+                                    <td>356</td>
+                                    <td>189</td>
+                                    <td>R$ 456.789</td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn download">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Maio 2023</td>
+                                    <td>98</td>
+                                    <td>287</td>
+                                    <td>154</td>
+                                    <td>R$ 389.452</td>
+                                    <td>
+                                        <button class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn download">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profile">
+                <!-- Seção Perfil -->
+                <div class="admin-section" id="profileSection">
+                    <div class="admin-table-container">
+                        <div class="table-header">
+                            <div class="table-title">Meu Perfil</div>
+                        </div>
+
+                        <div style="padding: 2rem;">
+                            <div style="display: flex; margin-bottom: 2rem; align-items: center;">
+                                <div class="sidebar-avatar"
+                                    style="width: 100px; height: 100px; font-size: 2.5rem; margin-right: 1.5rem;">A
+                                </div>
+                                <div>
+                                    <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--primary-color);">Admin</h2>
+                                    <p style="color: var(--text-light); margin-bottom: 1rem;">Administrador do Sistema</p>
+                                    <button class="profile-btn primary" id="editAdminProfileBtn">
+                                        <i class="fas fa-edit" style="margin-right: 8px;"></i>Editar Perfil
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                <div>
+                                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; color: var(--primary-color);">
+                                        Informações Pessoais
+                                    </h3>
+                                    <div style="margin-bottom: 1.5rem;">
+                                        <p style="color: var(--text-light); font-size: 0.9rem;">Nome completo</p>
+                                        <p>Administrador do Sistema</p>
+                                    </div>
+                                    <div style="margin-bottom: 1.5rem;">
+                                        <p style="color: var(--text-light); font-size: 0.9rem;">Email</p>
+                                        <p>admin@prospera.com</p>
+                                    </div>
+                                    <div style="margin-bottom: 1.5rem;">
+                                        <p style="color: var(--text-light); font-size: 0.9rem;">Data de registro</p>
+                                        <p>01/01/2023</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; color: var(--primary-color);">
+                                        Segurança
+                                    </h3>
+                                    <div style="margin-bottom: 1.5rem;">
+                                        <p style="color: var(--text-light); font-size: 0.9rem;">Último login</p>
+                                        <p id="lastLoginTime">Hoje às 14:30</p>
+                                    </div>
+                                    <div style="margin-bottom: 1.5rem;">
+                                        <p style="color: var(--text-light); font-size: 0.9rem;">Alterar senha</p>
+                                        <button class="profile-btn secondary" id="changePasswordBtn">
+                                            <i class="fas fa-key" style="margin-right: 8px;"></i>Alterar Senha
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-container">
+            <h3 class="confirm-title" id="confirmTitle">Confirmar ação</h3>
+            <p class="confirm-message" id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn cancel" id="cancelConfirmBtn">Cancelar</button>
+                <button class="confirm-btn confirm" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Perfil -->
+    <!-- <div class="edit-modal" id="editProfileModal">
+        <div class="edit-container">
+            <h3 class="edit-title" id="editTitle">Editar Perfil</h3>
+            <form class="edit-form" id="editProfileForm">
+                <label for="editName">Nome Completo</label>
+                <input type="text" id="editName" required>
+
+                <label for="editEmail">Email</label>
+                <input type="email" id="editEmail" required>
+
+                <div class="edit-buttons">
+                    <button type="button" class="edit-btn cancel" id="cancelEditBtn">Cancelar</button>
+                    <button type="submit" class="edit-btn save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div> -->
+
+    <!-- Modal de Alteração de Senha -->
+    <!-- <div class="edit-modal" id="changePasswordModal">
+        <div class="edit-container">
+            <h3 class="edit-title" id="changePasswordTitle">Alterar Senha</h3>
+            <form class="edit-form" id="changePasswordForm">
+                <label for="currentPassword">Senha Atual</label>
+                <input type="password" id="currentPassword" required>
+
+                <label for="newPassword">Nova Senha</label>
+                <input type="password" id="newPassword" required>
+
+                <label for="confirmNewPassword">Confirmar Nova Senha</label>
+                <input type="password" id="confirmNewPassword" required>
+
+                <div class="edit-buttons">
+                    <button type="button" class="edit-btn cancel" id="cancelChangePasswordBtn">Cancelar</button>
+                    <button type="submit" class="edit-btn save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div> -->
+
+
+
+</body>
+<script src="assets/js/admin.js"></script>
+</html>
