@@ -3,6 +3,36 @@ const express = require('express');
 module.exports = (pool) => {
     const router = express.Router();
 
+    // Endpoint de contagem e estatísticas rápidas
+    router.get('/count', async (req, res) => {
+        try {
+            const [rowsTotal] = await pool.query('SELECT COUNT(*) as total FROM usuario');
+            const [rowsNew] = await pool.query("SELECT COUNT(*) as new7days FROM usuario WHERE Usuario_Registro >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+            const totalRow = rowsTotal[0] || { total: 0 };
+            const newRow = rowsNew[0] || { new7days: 0 };
+            res.json({ total: totalRow.total, new7days: newRow.new7days });
+        } catch (err) {
+            console.error('Erro ao buscar contagem de usuários:', err.stack || err);
+            res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+        }
+    });
+
+    // Endpoint para usuários recentes (últimos 10)
+    router.get('/recent', async (req, res) => {
+        try {
+            const [rows] = await pool.query(`
+                SELECT Usuario_Id, Usuario_Nome, Usuario_Email, DATE_FORMAT(Usuario_Registro, '%Y-%m-%d %H:%i:%s') as Usuario_Registro
+                FROM usuario
+                ORDER BY Usuario_Registro DESC
+                LIMIT 10
+            `);
+            res.json(rows);
+        } catch (err) {
+            console.error('Erro ao buscar usuários recentes:', err);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    });
+
     // Rota para obter todos os usuários (READ)
     router.get('/', async (req, res) => {
         try {

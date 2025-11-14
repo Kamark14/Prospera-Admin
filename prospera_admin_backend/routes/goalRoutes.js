@@ -3,6 +3,19 @@ const express = require('express');
 module.exports = (pool) => {
     const router = express.Router();
 
+    // Endpoint de contagem/estatísticas de metas
+    router.get('/count', async (req, res) => {
+        try {
+            const [[totalRow]] = await pool.query('SELECT COUNT(*) as total FROM meta_financeira');
+            const [[completedRow]] = await pool.query("SELECT COUNT(*) as completed FROM meta_financeira WHERE LOWER(Status_Meta) LIKE '%conclu%'");
+            const [[newRow]] = await pool.query("SELECT COUNT(*) as new7days FROM meta_financeira_detalhes WHERE DataCriacao_Meta >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+            res.json({ total: totalRow.total, completed: completedRow.completed, new7days: newRow.new7days });
+        } catch (err) {
+            console.error('Erro ao buscar contagem de metas:', err);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    });
+
     // Rota para obter todas as metas (READ)
     router.get('/', async (req, res) => {
         try {
