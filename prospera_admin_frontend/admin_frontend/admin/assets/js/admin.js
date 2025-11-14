@@ -21,7 +21,9 @@ const confirmActionBtn = document.getElementById('confirmActionBtn');
 const lastLoginTime = document.getElementById('lastLoginTime');
 
 // Configuração do Backend
-const API_BASE_URL = 'http://localhost:3000/api'; // O backend rodará na porta 3000
+// Use a URL completa para o backend para evitar 404 quando o frontend
+// for servido por outro servidor (ex: live-server em :5500).
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Estado da aplicação
 let currentAdmin = null;
@@ -91,6 +93,8 @@ function renderUsersTable(users) {
 
     users.forEach(user => {
         const row = document.createElement('tr');
+        // Marcar a linha para facilitar remoção/seleção futura
+        row.setAttribute('data-user-id', user.Usuario_Id);
         row.innerHTML = `
             <td>${user.Usuario_Id}</td>
             <td>
@@ -124,7 +128,14 @@ function renderUsersTable(users) {
 
 async function fetchUsers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/users`);
+        // Tenta buscar a lista completa; se falhar com 500, tenta o endpoint /recent
+        let response = await fetch(`${API_BASE_URL}/users`);
+        if (!response.ok) {
+            // se for erro 500, tenta retornar apenas os recentes
+            if (response.status === 500) {
+                response = await fetch(`${API_BASE_URL}/users/recent`);
+            }
+        }
         if (!response.ok) throw new Error('Falha ao buscar usuários');
         const users = await response.json();
         renderUsersTable(users);
@@ -142,7 +153,7 @@ async function deleteUser(userId) {
 
         if (!response.ok) throw new Error('Falha ao deletar usuário');
 
-        // Remover a linha da tabela
+        // Remover a linha da tabela usando o atributo data-user-id
         const row = document.querySelector(`tr[data-user-id="${userId}"]`);
         if (row) {
             row.style.opacity = '0.5';
@@ -150,6 +161,9 @@ async function deleteUser(userId) {
             setTimeout(() => {
                 row.remove();
             }, 500);
+        } else {
+            // Se não encontrar a linha, recarrega a lista para manter a interface sincronizada
+            fetchUsers();
         }
     } catch (error) {
         console.error('Erro ao deletar usuário:', error);
@@ -160,23 +174,14 @@ async function deleteUser(userId) {
 // Adicione esta função para atualizar o contador de usuários
 async function updateUserCount() {
     try {
-        const response = await fetch(`${API_BASE_URL}/users`);
-        if (!response.ok) throw new Error('Falha ao buscar usuários');
-        const users = await response.json();
-        
-        // Atualiza o contador de usuários total
-        document.getElementById('totalUsers').textContent = users.length;
-        
-        // Calcula usuários novos (últimos 7 dias)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        
-        const newUsers = users.filter(user => {
-            const userDate = new Date(user.Usuario_Registro);
-            return userDate >= sevenDaysAgo;
-        });
-        
-        document.getElementById('newUsers').textContent = newUsers.length;
+        // Usa o endpoint de contagem para menor carga
+        const response = await fetch(`${API_BASE_URL}/users/count`);
+        if (!response.ok) throw new Error('Falha ao buscar contagem de usuários');
+        const data = await response.json();
+
+        // Atualiza os contadores
+        document.getElementById('totalUsers').textContent = data.total ?? '0';
+        document.getElementById('newUsers').textContent = data.new7days ?? '0';
     } catch (error) {
         console.error('Erro ao atualizar contagem de usuários:', error);
     }
@@ -190,7 +195,7 @@ loginForm.addEventListener('submit', async (e) => {
     const password = adminPassword.value;
 
     try {
-        const response = await fetch('http://localhost:3000/api/admins/login', {
+        const response = await fetch(`${API_BASE_URL}/admins/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
