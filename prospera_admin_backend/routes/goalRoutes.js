@@ -16,7 +16,7 @@ module.exports = (pool) => {
         }
     });
 
-    // Rota para obter todas as metas (READ)
+    // Rota para obter todas as metas (READ) - agora com info do usuário
     router.get('/', async (req, res) => {
         try {
             const query = `
@@ -29,9 +29,14 @@ module.exports = (pool) => {
                     mf.Status_Meta,
                     mfd.ValorAlvo_Meta,
                     mfd.ValorAtual_Meta,
-                    mfd.DataFim_Meta
+                    DATE_FORMAT(mfd.DataFim_Meta, '%Y-%m-%d %H:%i:%s') as DataFim_Meta,
+                    u.Usuario_Id,
+                    u.Usuario_Nome,
+                    u.Usuario_Email
                 FROM meta_financeira mf
                 JOIN meta_financeira_detalhes mfd ON mf.id = mfd.Meta_Id
+                LEFT JOIN usuario u ON mf.Usuario_Id = u.Usuario_Id
+                ORDER BY mfd.DataCriacao_Meta DESC
             `;
             const [rows] = await pool.query(query);
             res.json(rows);
@@ -41,7 +46,7 @@ module.exports = (pool) => {
         }
     });
 
-    // Rota para obter uma meta por ID (READ)
+    // Rota para obter uma meta por ID (READ) - inclui info do usuário
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
         try {
@@ -59,9 +64,13 @@ module.exports = (pool) => {
                     mfd.ValorAlvo_Meta,
                     mfd.DataCriacao_Meta,
                     mfd.DataAtualizacao_Meta,
-                    mfd.DataTermino_Meta
+                    mfd.DataTermino_Meta,
+                    u.Usuario_Id,
+                    u.Usuario_Nome,
+                    u.Usuario_Email
                 FROM meta_financeira mf
                 JOIN meta_financeira_detalhes mfd ON mf.id = mfd.Meta_Id
+                LEFT JOIN usuario u ON mf.Usuario_Id = u.Usuario_Id
                 WHERE mf.id = ?
             `;
             const [rows] = await pool.query(query, [id]);

@@ -1,1 +1,0 @@
-Vamos fazer com que os dados apareçam do meu banco de dados aqui no meu frontend, eu quero que a quantidade de usuarios pareçam de forma dinamica no frontend, vamos substituir os dados estáticos por dados dinamicos do banco, e tambem, fazer os usuarios aparecerem de forma dinamica na seção de usuarios.

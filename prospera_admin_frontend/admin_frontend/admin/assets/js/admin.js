@@ -58,8 +58,14 @@ function showSection(sectionId) {
         // Se for dashboard ou users, atualiza os dados
         if (sectionId === 'dashboard') {
             updateUserCount();
+            updateGoalsCount();
+            // também buscar metas recentes para dashboard
+            fetchGoals();
         } else if (sectionId === 'users') {
             fetchUsers();
+        } else if (sectionId === 'goals') {
+            fetchGoals();
+            updateGoalsCount();
         }
 
         // Adicionar classe de animação
@@ -187,6 +193,114 @@ async function updateUserCount() {
     }
 }
 
+async function updateGoalsCount() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/goals/count`);
+        if (!res.ok) throw new Error('Falha ao buscar contagem de metas');
+        const data = await res.json();
+        // total = total metas, completed = concluidas
+        const total = data.total ?? 0;
+        const completed = data.completed ?? 0;
+        const active = Math.max(total - completed, 0);
+        document.getElementById('activeGoals').textContent = active;
+        document.getElementById('completedGoals').textContent = completed;
+    } catch (err) {
+        console.error('Erro ao atualizar contagem de metas:', err);
+    }
+}
+
+function formatCurrency(value) {
+    if (value == null) return 'R$ 0,00';
+    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function renderGoalsTable(goals) {
+    const tbody = document.getElementById('goalsTbody');
+    tbody.innerHTML = '';
+
+    goals.forEach(goal => {
+        const progress = (goal.ValorAlvo_Meta && goal.ValorAlvo_Meta > 0)
+            ? Math.round((goal.ValorAtual_Meta || 0) / goal.ValorAlvo_Meta * 100)
+            : 'N/A';
+
+        const userName = goal.Usuario_Nome || '—';
+        const userEmail = goal.Usuario_Email || '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${goal.id}</td>
+            <td>${goal.Nome_Meta}</td>
+            <td>
+                <div class="user-cell">
+                    <div class="user-avatar">${(userName[0] || 'U').toUpperCase()}</div>
+                    <div>
+                        <div class="user-name">${userName}</div>
+                        <div class="user-email">${userEmail}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${formatCurrency(goal.ValorAlvo_Meta)}</td>
+            <td>${progress === 'N/A' ? 'N/A' : progress + '%'}</td>
+            <td><span class="status-badge ${goal.Status_Meta && goal.Status_Meta.toLowerCase().includes('conclu') ? 'status-active' : 'status-pending'}">${goal.Status_Meta}</span></td>
+            <td>
+                <button class="action-btn view" data-id="${goal.id}"><i class="fas fa-eye"></i></button>
+                <button class="action-btn edit" data-id="${goal.id}"><i class="fas fa-edit"></i></button>
+                <button class="action-btn delete" data-id="${goal.id}"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function renderDashboardRecentGoals(goals) {
+    const tbody = document.getElementById('dashboardGoalsTbody');
+    tbody.innerHTML = '';
+
+    // mostra até 5 recentes
+    goals.slice(0, 5).forEach(goal => {
+        const progress = (goal.ValorAlvo_Meta && goal.ValorAlvo_Meta > 0)
+            ? Math.round((goal.ValorAtual_Meta || 0) / goal.ValorAlvo_Meta * 100)
+            : 'N/A';
+
+        const userName = goal.Usuario_Nome || '—';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${goal.Nome_Meta}</td>
+            <td>
+                <div class="user-cell">
+                    <div class="user-avatar">${(userName[0] || 'U').toUpperCase()}</div>
+                    <div>
+                        <div class="user-name">${userName}</div>
+                        <div class="user-email">${goal.Usuario_Email || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${goal.DataFim_Meta ? formatDate(goal.DataFim_Meta) : '—'}</td>
+            <td>${formatCurrency(goal.ValorAlvo_Meta)}</td>
+            <td>${progress === 'N/A' ? 'N/A' : progress + '%'}</td>
+            <td>
+                <button class="action-btn view" data-id="${goal.id}"><i class="fas fa-eye"></i></button>
+                <button class="action-btn edit" data-id="${goal.id}"><i class="fas fa-edit"></i></button>
+                <button class="action-btn delete" data-id="${goal.id}"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+async function fetchGoals() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/goals`);
+        if (!res.ok) throw new Error('Falha ao buscar metas');
+        const goals = await res.json();
+        renderGoalsTable(goals);
+        renderDashboardRecentGoals(goals);
+    } catch (err) {
+        console.error('Erro ao carregar metas:', err);
+    }
+}
+
 // Event Listeners
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -222,6 +336,7 @@ loginForm.addEventListener('submit', async (e) => {
 
             // Atualizar contadores após login bem-sucedido
             updateUserCount();
+            updateGoalsCount();
             showSection('dashboard');
             loginError.style.display = 'none';
         } else {
