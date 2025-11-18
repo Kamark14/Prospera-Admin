@@ -10,6 +10,8 @@ create table usuario (
     Usuario_Senha VARCHAR(255) NOT NULL
 );
 
+-- Bloco 1 de usuarios:
+
 INSERT INTO usuario (Usuario_Nome, Usuario_CPF, Usuario_Email, Usuario_Senha) VALUES
 ('João Silva', '123.456.789-00', 'joao.silva@email.com', '$2y$10$ABC123def456ghi789jkl'),
 ('Maria Santos', '987.654.321-00', 'maria.santos@email.com', '$2y$10$DEF456ghi789jkl012mno'),
@@ -26,6 +28,42 @@ INSERT INTO usuario (Usuario_Nome, Usuario_CPF, Usuario_Email, Usuario_Senha) VA
 ('Roberto Nunes', '159.357.486-00', 'roberto.nunes@email.com', '$2y$10$KLM789nop012qrs345tuv'),
 ('Patrícia Dias', '357.486.159-00', 'patricia.dias@email.com', '$2y$10$NOP012qrs345tuv678wxy'),
 ('Diego Castro', '486.159.357-00', 'diego.castro@email.com', '$2y$10$QRS345tuv678wxy901zab');
+
+-- Bloco 2 de usuarios:
+INSERT INTO usuario (Usuario_Nome, Usuario_CPF, Usuario_Email, Usuario_Senha) VALUES
+('Eduardo Menezes', '258.147.369-00', 'eduardo.menezes@email.com', '$2y$10$TUV678wxy901zab234cde'),
+('Mariana Carvalho', '369.258.147-00', 'mariana.carvalho@email.com', '$2y$10$WXY901zab234cde567fgh'),
+('Felipe Gomes', '147.369.258-00', 'felipe.gomes@email.com', '$2y$10$ZAB234cde567fgh890ijk'),
+('Sofia Ribeiro', '753.159.852-00', 'sofia.ribeiro@email.com', '$2y$10$CDE567fgh890ijk123lmn'),
+('Daniel Azevedo', '852.753.159-00', 'daniel.azevedo@email.com', '$2y$10$FGH890ijk123lmn456opq'),
+('Renata Barros', '159.852.753-00', 'renata.barros@email.com', '$2y$10$IJK123lmn456opq789rst'),
+('André Farias', '456.123.789-00', 'andre.farias@email.com', '$2y$10$LMN456opq789rst012uvw'),
+('Paula Ventura', '789.456.123-00', 'paula.ventura@email.com', '$2y$10$OPQ789rst012uvw345xyz'),
+('Gustavo Pires', '123.789.456-00', 'gustavo.pires@email.com', '$2y$10$RST012uvw345xyz678abc'),
+('Helena Duarte', '951.753.456-00', 'helena.duarte@email.com', '$2y$10$UVW345xyz678abc901def'),
+('Marcelo Figueiredo', '357.159.753-00', 'marcelo.figueiredo@email.com', '$2y$10$XYZ678abc901def234ghi'),
+('Letícia Moreira', '654.321.987-00', 'leticia.moreira@email.com', '$2y$10$ABC901def234ghi567jkl'),
+('Rafael Teixeira', '987.123.654-00', 'rafael.teixeira@email.com', '$2y$10$DEF234ghi567jkl890mno'),
+('Bianca Fonseca', '321.987.123-00', 'bianca.fonseca@email.com', '$2y$10$GHI567jkl890mno123pqr'),
+('Thiago Mendonça', '753.456.951-00', 'thiago.mendonca@email.com', '$2y$10$JKL890mno123pqr456stu');
+
+-- Bloco 3 de usuarios:
+INSERT INTO usuario (Usuario_Nome, Usuario_CPF, Usuario_Email, Usuario_Senha) VALUES
+('Victor Almeida', '258.963.147-00', 'victor.almeida@email.com', '$2y$10$MNO123pqr456stu789vwx'),
+('Larissa Monteiro', '147.258.963-00', 'larissa.monteiro@email.com', '$2y$10$PQR456stu789vwx012yz1'),
+('Henrique Batista', '963.147.258-00', 'henrique.batista@email.com', '$2y$10$STU789vwx012yz1345abc'),
+('Beatriz Rezende', '654.258.741-00', 'beatriz.rezende@email.com', '$2y$10$VWX012yz1345abc678def'),
+('Renan Tavares', '741.654.258-00', 'renan.tavares@email.com', '$2y$10$YZA1345abc678def901ghi'),
+('Carolina Prado', '258.741.654-00', 'carolina.prado@email.com', '$2y$10$BCD678def901ghi234jkl'),
+('Maurício Antunes', '852.147.369-00', 'mauricio.antunes@email.com', '$2y$10$EFG901ghi234jkl567mno'),
+('Evelyn Cardoso', '369.852.147-00', 'evelyn.cardoso@email.com', '$2y$10$HIJ234jkl567mno890pqr'),
+('Alexandre Couto', '147.369.852-00', 'alexandre.couto@email.com', '$2y$10$KLM567mno890pqr123stu'),
+('Vanessa Moraes', '357.654.951-00', 'vanessa.moraes@email.com', '$2y$10$NOP890pqr123stu456vwx'),
+('Otávio Sanches', '951.357.654-00', 'otavio.sanches@email.com', '$2y$10$QRS123stu456vwx789yz2'),
+('Mirella Paes', '654.951.357-00', 'mirella.paes@email.com', '$2y$10$TUV456vwx789yz2012abc'),
+('Eduarda Sales', '789.258.456-00', 'eduarda.sales@email.com', '$2y$10$WXY789yz2012abc345def'),
+('Leonardo Porto', '456.789.258-00', 'leonardo.porto@email.com', '$2y$10$ZAB012abc345def678ghi'),
+('Natália Freire', '258.456.789-00', 'natalia.freire@email.com', '$2y$10$CDE345def678ghi901jkl');
 
 select * from usuario;
 
