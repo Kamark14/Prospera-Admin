@@ -460,9 +460,67 @@ window.addEventListener('resize', () => {
 });
 
 // Inicialização
-document.addEventListener('DOMContentLoaded', function () {
-    // Adicionar data e hora atual para último login
-    const now = new Date();
-    lastLoginTime.textContent = formatDate(now);
+document.addEventListener('DOMContentLoaded', () => {
+    loadFinancesReport();
 });
+
+async function loadFinancesReport() {
+    const tbody = document.getElementById('financesTbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="6">Carregando...</td></tr>`;
+    try {
+        const res = await fetch('/api/reports/finances');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json(); // espera um array de objetos
+        renderFinances(data || []);
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6">Erro ao carregar relatórios: ${err.message}</td></tr>`;
+        console.error('loadFinancesReport:', err);
+    }
+}
+
+function renderFinances(reports) {
+    const tbody = document.getElementById('financesTbody');
+    if (!tbody) return;
+    if (!reports.length) {
+        tbody.innerHTML = `<tr><td colspan="6">Nenhum relatório disponível.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = reports.map(r => {
+        const totalSaved = formatCurrency(r.totalSaved || 0);
+        return `
+            <tr>
+                <td>${escapeHtml(r.period)}</td>
+                <td>${r.newUsers ?? 0}</td>
+                <td>${r.goalsCreated ?? 0}</td>
+                <td>${r.goalsCompleted ?? 0}</td>
+                <td>${totalSaved}</td>
+                <td>
+                    <button class="action-btn view" data-period="${escapeHtml(r.period)}"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn download" data-period="${escapeHtml(r.period)}"><i class="fas fa-download"></i></button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function formatCurrency(value) {
+    // Formata para BRL. value em centavos ou reais — adapte conforme sua API.
+    const number = Number(value) || 0;
+    return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Adicionar data e hora atual para último login
+const now = new Date();
+lastLoginTime.textContent = formatDate(now);
 

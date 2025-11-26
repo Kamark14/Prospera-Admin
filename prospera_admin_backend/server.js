@@ -79,6 +79,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/admins', adminRoutes);
 app.use('/api/goals', goalRoutes);
 
+// Se o arquivo de rotas exportar um router (como acima):
+const adminReports = require('./routes/adminRoutes');
+app.use('/api/reports', adminReports);
+
 // Iniciar o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
