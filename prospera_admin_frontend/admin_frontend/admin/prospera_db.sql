@@ -10,6 +10,9 @@ create table usuario (
     Usuario_Senha VARCHAR(255) NOT NULL
 );
 
+ALTER TABLE usuario 
+    ADD COLUMN IF NOT EXISTS Usuario_Registro DATETIME DEFAULT CURRENT_TIMESTAMP;
+
 -- Bloco 1 de usuarios:
 
 INSERT INTO usuario (Usuario_Nome, Usuario_CPF, Usuario_Email, Usuario_Senha) VALUES

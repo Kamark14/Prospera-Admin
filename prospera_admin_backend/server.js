@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Servir frontend estático para evitar problemas de CORS ao abrir via file://
@@ -28,20 +28,33 @@ const pool = mysql.createPool({
 
 // Teste de Conexão
 pool.getConnection()
-    .then(connection => {
-        console.log('Conexão com o banco de dados MySQL estabelecida com sucesso!');
-        connection.release();
-    })
-    .catch(err => {
-        console.error('Erro ao conectar ao banco de dados MySQL:', err.message);
-        console.error('Verifique se o servidor MySQL está rodando e as credenciais em .env estão corretas.');
-    });
+  .then(conn => {
+    console.log('Conectado ao banco MySQL');
+    conn.release();
+    // monta rotas aqui
+    const userRoutes = require('./routes/userRoutes')(pool);
+    app.use('/api/users', userRoutes);
+    const adminRoutes = require('./routes/adminRoutes')(pool);
+    const goalRoutes = require('./routes/goalRoutes')(pool);
+    const authRoutes = require('./routes/authRoutes')(pool);
+    const reportRoutes = require('./routes/reportRoutes')(pool);
+    app.use('/api/reports', reportRoutes);
+  })
+  .catch(err => {
+    console.error('Erro ao conectar com DB:', err);
+    process.exit(1);
+  });
 
 // Garantir coluna de registro de usuário existe (ajusta schema se necessário)
-(async () => {
+async function ensureSchemaAndStart() {
     try {
+        // Teste de conexão
+        const connection = await pool.getConnection();
+        console.log('Conexão com o banco de dados MySQL estabelecida com sucesso!');
+        connection.release();
+
+        // Verifica/Cria coluna Usuario_Registro antes de expor as rotas
         const dbName = process.env.DB_DATABASE;
-        // Verifica se a coluna Usuario_Registro existe
         const [cols] = await pool.query(
             'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?',
             [dbName, 'usuario', 'Usuario_Registro']
@@ -54,37 +67,37 @@ pool.getConnection()
                 console.log('Coluna `Usuario_Registro` criada com sucesso.');
             } catch (alterErr) {
                 console.error('Falha ao criar coluna `Usuario_Registro`:', alterErr.message);
-                console.error('Se o usuário do DB não tiver permissão ALTER TABLE, crie a coluna manualmente:');
-                console.error("ALTER TABLE usuario ADD COLUMN Usuario_Registro DATETIME DEFAULT CURRENT_TIMESTAMP");
+                console.error('Crie manualmente no banco caso falta de permissão: ALTER TABLE usuario ADD COLUMN Usuario_Registro DATETIME DEFAULT CURRENT_TIMESTAMP');
             }
         }
+
+        // Importar e usar as rotas APÓS garantir o schema
+        const userRoutes = require('./routes/userRoutes')(pool);
+        const adminRoutes = require('./routes/adminRoutes')(pool);
+        const goalRoutes = require('./routes/goalRoutes')(pool);
+        const authRoutes = require('./routes/authRoutes')(pool);
+        const reportRoutes = require('./routes/reportRoutes')(pool);
+
+        app.use(authRoutes);
+        app.use('/api/users', userRoutes);
+        app.use('/api/admins', adminRoutes);
+        app.use('/api/goals', goalRoutes);
+        app.use('/api/reports', reportRoutes);
+
+        // Iniciar o servidor só depois de tudo
+        app.listen(PORT, () => {
+            console.log(`Servidor rodando na porta ${PORT}`);
+        });
+
     } catch (err) {
-        console.error('Erro ao verificar/criar coluna Usuario_Registro:', err.stack || err);
+        console.error('Erro durante inicialização:', err);
     }
-})();
+}
+
+ensureSchemaAndStart();
 
 // Servir a página principal do painel (frontend)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'prospera_admin_frontend', 'admin_frontend', 'admin', 'admin.html'));
-});
-
-// Importar e usar as rotas
-const userRoutes = require('./routes/userRoutes')(pool);
-const adminRoutes = require('./routes/adminRoutes')(pool);
-const goalRoutes = require('./routes/goalRoutes')(pool);
-const authRoutes = require('./routes/authRoutes')(pool);
-
-app.use(authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/admins', adminRoutes);
-app.use('/api/goals', goalRoutes);
-
-// Se o arquivo de rotas exportar um router (como acima):
-const adminReports = require('./routes/adminRoutes');
-app.use('/api/reports', adminReports);
-
-// Iniciar o servidor
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
 });
 

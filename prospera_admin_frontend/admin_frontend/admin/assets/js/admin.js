@@ -469,14 +469,14 @@ async function loadFinancesReport() {
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="6">Carregando...</td></tr>`;
     try {
-        const res = await fetch('/api/reports/finances');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json(); // espera um array de objetos
-        renderFinances(data || []);
-    } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6">Erro ao carregar relatórios: ${err.message}</td></tr>`;
-        console.error('loadFinancesReport:', err);
-    }
+        const res = await fetch(`${API_BASE_URL}/reports/finances`);
+         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+         const data = await res.json(); // espera um array de objetos
+         renderFinances(data || []);
+     } catch (err) {
+         tbody.innerHTML = `<tr><td colspan="6">Erro ao carregar relatórios: ${err.message}</td></tr>`;
+         console.error('loadFinancesReport:', err);
+     }
 }
 
 function renderFinances(reports) {
@@ -523,4 +523,26 @@ function escapeHtml(str) {
 // Adicionar data e hora atual para último login
 const now = new Date();
 lastLoginTime.textContent = formatDate(now);
+
+// Simulação de dados para o relatório financeiro (remover em produção)
+const newUsers = 10;
+const goalsCreated = 5;
+const goalsCompleted = 3;
+const totalSaved = 200.75;
+
+// Enviar dados simulados para o backend (remover em produção)
+fetch(`${API_BASE_URL}/reports/finances`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify([{
+    period: 'last_30_days',
+    newUsers,
+    goalsCreated,
+    goalsCompleted,
+    totalSaved
+  }])
+})
+.then(res => res.json())
+.then(data => console.log('Dados enviados com sucesso:', data))
+.catch(err => console.error('Erro ao enviar dados:', err));
 
