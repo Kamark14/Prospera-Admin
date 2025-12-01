@@ -29,7 +29,7 @@ const API_BASE_URL = 'http://localhost:3000/api';
 let currentAdmin = null;
 
 // Funções auxiliares
-function formatDate(date) {
+function formatDateTime(date) {
     const options = {
         day: '2-digit',
         month: '2-digit',
@@ -37,7 +37,7 @@ function formatDate(date) {
         hour: '2-digit',
         minute: '2-digit'
     };
-    return new Date(date).toLocaleDateString('pt-BR', options);
+    return new Date(date).toLocaleString('pt-BR', options);
 }
 
 function showSection(sectionId) {
@@ -301,6 +301,103 @@ async function fetchGoals() {
     }
 }
 
+/**
+ * Preenche o perfil do admin com os dados retornados
+ * admin = { name, username, email, role, createdAt, lastLogin }
+ */
+function populateAdminProfile(admin) {
+    if (!admin) return;
+    const name = admin.name || admin.username || 'Admin';
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileFullName').textContent = admin.name || name;
+    document.getElementById('profileEmail').textContent = admin.email || 'admin@prospera.com';
+    document.getElementById('profileRole').textContent = admin.role || 'Administrador';
+    const joinDate = formatDate(admin.createdAt || admin.joinedAt);
+    document.getElementById('profileJoinDate').textContent = joinDate || '—';
+    const lastLoginText = formatLastLogin(admin.lastLogin || admin.last_login);
+    document.getElementById('lastLoginTime').textContent = lastLoginText || '—';
+    const initial = (name.charAt(0) || 'A').toUpperCase();
+    const profileAvatar = document.getElementById('profileAvatar');
+    const sideAvatar = document.getElementById('adminAvatar'); // sidebar avatar
+    if (profileAvatar) profileAvatar.textContent = initial;
+    if (sideAvatar) sideAvatar.textContent = initial;
+}
+
+function formatDate(dateInput) {
+    if (!dateInput) return null;
+    const d = new Date(dateInput);
+    if (isNaN(d)) return dateInput; // fallback se não for ISO
+    return d.toLocaleDateString('pt-BR');
+}
+
+function formatLastLogin(dateInput) {
+    if (!dateInput) return null;
+    const d = new Date(dateInput);
+    if (isNaN(d)) return dateInput;
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return isToday ? `Hoje às ${time}` : `${d.toLocaleDateString('pt-BR')} às ${time}`;
+}
+
+async function fetchAdminProfile() {
+    const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+    const endpoints = [
+        `${API_BASE_URL}/admins/me`,
+        `${API_BASE_URL}/auth/me`,
+        `${API_BASE_URL}/admins/profile`
+    ];
+    let adminData = null;
+
+    if (token) {
+        for (const ep of endpoints) {
+            try {
+                const res = await fetch(ep, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    // Normalizar campos recebidos
+                    adminData = {
+                        name: data.Admin_Nome || data.name || data.username || data.userName,
+                        email: data.Admin_Email || data.email,
+                        role: data.role || 'Administrador',
+                        createdAt: data.Admin_Registro || data.createdAt || data.created_at,
+                        lastLogin: data.lastLogin || data.last_login || data.LastLogin
+                    };
+                    break;
+                }
+            } catch (err) {
+                console.warn('Erro ao buscar perfil em', ep, err);
+            }
+        }
+    }
+
+    if (!adminData) {
+        const stored = localStorage.getItem('adminData');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                adminData = {
+                    name: parsed.Admin_Nome || parsed.name || parsed.username,
+                    email: parsed.Admin_Email || parsed.email,
+                    role: parsed.role || 'Administrador',
+                    createdAt: parsed.Admin_Registro || parsed.createdAt,
+                    lastLogin: parsed.lastLogin || parsed.LastLogin
+                };
+            } catch (e) { /* ignore */ }
+        }
+    }
+
+    if (adminData) {
+        currentAdmin = adminData;
+        populateAdminProfile(adminData);
+    }
+}
+
 // Event Listeners
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -318,21 +415,30 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
+            // Normaliza o objeto currentAdmin
             currentAdmin = {
-                name: data.Admin_Nome,
-                email: data.Admin_Email,
-                id: data.Admin_Id
+                name: data.Admin_Nome || data.name || username,
+                email: data.Admin_Email || data.email || '',
+                id: data.Admin_Id || data.id
             };
+
+            // Salva token e dados no localStorage (se vierem)
+            if (data.token) localStorage.setItem('token', data.token);
+            if (data.Admin_Token) localStorage.setItem('adminToken', data.Admin_Token);
+            localStorage.setItem('adminData', JSON.stringify(data));
 
             loginContainer.style.display = 'none';
             adminContainer.style.display = 'flex';
 
-            // Atualizar informações do admin
-            document.getElementById('adminAvatar').textContent = currentAdmin.name.charAt(0).toUpperCase();
+            // Atualizar informações do admin na UI
+            document.getElementById('adminAvatar').textContent = (currentAdmin.name || 'A').charAt(0).toUpperCase();
             document.getElementById('adminUsernameDisplay').textContent = currentAdmin.name;
 
             // Atualizar último login
-            lastLoginTime.textContent = formatDate(new Date());
+            lastLoginTime.textContent = formatDateTime(new Date());
+
+            // Preenche a seção de perfil
+            populateAdminProfile(currentAdmin);
 
             // Atualizar contadores após login bem-sucedido
             updateUserCount();
@@ -461,6 +567,8 @@ window.addEventListener('resize', () => {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+    // Carrega perfil do admin caso exista token/adminData
+    fetchAdminProfile().catch(console.error);
     loadFinancesReport();
 });
 

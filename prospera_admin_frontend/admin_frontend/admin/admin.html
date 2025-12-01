@@ -224,12 +224,12 @@
 
                         <div style="padding: 2rem;">
                             <div style="display: flex; margin-bottom: 2rem; align-items: center;">
-                                <div class="sidebar-avatar"
-                                    style="width: 100px; height: 100px; font-size: 2.5rem; margin-right: 1.5rem;">A
+                                <div class="sidebar-avatar profile-avatar" id="profileAvatar"
+                                     style="width: 100px; height: 100px; font-size: 2.5rem; margin-right: 1.5rem;">A
                                 </div>
                                 <div>
-                                    <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--primary-color);">Admin</h2>
-                                    <p style="color: var(--text-light); margin-bottom: 1rem;">Administrador do Sistema</p>
+                                    <h2 id="profileName" style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--primary-color);">Admin</h2>
+                                    <p id="profileRole" style="color: var(--text-light); margin-bottom: 1rem;">Administrador do Sistema</p>
                                     <button class="profile-btn primary" id="editAdminProfileBtn">
                                         <i class="fas fa-edit" style="margin-right: 8px;"></i>Editar Perfil
                                     </button>
@@ -243,15 +243,15 @@
                                     </h3>
                                     <div style="margin-bottom: 1.5rem;">
                                         <p style="color: var(--text-light); font-size: 0.9rem;">Nome completo</p>
-                                        <p>Administrador do Sistema</p>
+                                        <p id="profileFullName">Administrador do Sistema</p>
                                     </div>
                                     <div style="margin-bottom: 1.5rem;">
                                         <p style="color: var(--text-light); font-size: 0.9rem;">Email</p>
-                                        <p>admin@prospera.com</p>
+                                        <p id="profileEmail">admin@prospera.com</p>
                                     </div>
                                     <div style="margin-bottom: 1.5rem;">
                                         <p style="color: var(--text-light); font-size: 0.9rem;">Data de registro</p>
-                                        <p>01/01/2023</p>
+                                        <p id="profileJoinDate">01/01/2023</p>
                                     </div>
                                 </div>
 
@@ -289,49 +289,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal de Edição de Perfil -->
-    <!-- <div class="edit-modal" id="editProfileModal">
-        <div class="edit-container">
-            <h3 class="edit-title" id="editTitle">Editar Perfil</h3>
-            <form class="edit-form" id="editProfileForm">
-                <label for="editName">Nome Completo</label>
-                <input type="text" id="editName" required>
-
-                <label for="editEmail">Email</label>
-                <input type="email" id="editEmail" required>
-
-                <div class="edit-buttons">
-                    <button type="button" class="edit-btn cancel" id="cancelEditBtn">Cancelar</button>
-                    <button type="submit" class="edit-btn save">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div> -->
-
-    <!-- Modal de Alteração de Senha -->
-    <!-- <div class="edit-modal" id="changePasswordModal">
-        <div class="edit-container">
-            <h3 class="edit-title" id="changePasswordTitle">Alterar Senha</h3>
-            <form class="edit-form" id="changePasswordForm">
-                <label for="currentPassword">Senha Atual</label>
-                <input type="password" id="currentPassword" required>
-
-                <label for="newPassword">Nova Senha</label>
-                <input type="password" id="newPassword" required>
-
-                <label for="confirmNewPassword">Confirmar Nova Senha</label>
-                <input type="password" id="confirmNewPassword" required>
-
-                <div class="edit-buttons">
-                    <button type="button" class="edit-btn cancel" id="cancelChangePasswordBtn">Cancelar</button>
-                    <button type="submit" class="edit-btn save">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div> -->
-
-
 
 </body>
 <script src="assets/js/admin.js"></script>
