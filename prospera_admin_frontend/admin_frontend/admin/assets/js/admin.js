@@ -107,20 +107,34 @@ function renderUsersTable(users) {
                 <div class="user-cell">
                     <div class="user-avatar">${user.Usuario_Nome.charAt(0).toUpperCase()}</div>
                     <div>
-                        <div class="user-name">${user.Usuario_Nome}</div>
-                        <div class="user-email">${user.Usuario_Email}</div>
+                        <div class="user-name">${escapeHtml(user.Usuario_Nome)}</div>
+                        <div class="user-email">${escapeHtml(user.Usuario_Email)}</div>
                     </div>
                 </div>
             </td>
-            <td>${user.Usuario_Email}</td>
+            <td>${escapeHtml(user.Usuario_Email)}</td>
             <td>${formatDate(user.Usuario_Registro || new Date())}</td>
             <td>N/A</td>
             <td><span class="status-badge status-active">Ativo</span></td>
             <td>
-                <button class="action-btn view" data-id="${user.Usuario_Id}">
+                <button class="action-btn view view-user-btn"
+                    data-id="${user.Usuario_Id}"
+                    data-name="${escapeHtml(user.Usuario_Nome)}"
+                    data-email="${escapeHtml(user.Usuario_Email)}"
+                    data-phone="${escapeHtml(user.Usuario_Telefone || '')}"
+                    data-role="${escapeHtml(user.Usuario_Cargo || '')}"
+                    data-join-date="${formatDate(user.Usuario_Registro || '')}"
+                    data-last-login="${escapeHtml(user.Usuario_UltimoLogin || '')}"
+                    aria-label="Visualizar usuário ${escapeHtml(user.Usuario_Nome)}">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="action-btn edit" data-id="${user.Usuario_Id}">
+                <button class="action-btn edit edit-user-btn" data-id="${user.Usuario_Id}"
+                    data-name="${escapeHtml(user.Usuario_Nome)}"
+                    data-email="${escapeHtml(user.Usuario_Email)}"
+                    data-phone="${escapeHtml(user.Usuario_Telefone || '')}"
+                    data-role="${escapeHtml(user.Usuario_Cargo || '')}"
+                    data-status="Ativo"
+                    data-join-date="${formatDate(user.Usuario_Registro || '')}">
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete" data-id="${user.Usuario_Id}">
@@ -521,16 +535,27 @@ document.addEventListener('click', (e) => {
         showConfirmModal('Confirmar Exclusão', `Tem certeza que deseja excluir o usuário ID ${userId}?`, () => {
             deleteUser(userId);
         });
+        return;
     }
 
-    if (e.target.closest('.action-btn.edit')) {
-        // Lógica para editar o item (A ser implementada)
-        alert('Abrir editor para este item (A ser implementado com a API de PUT)');
+    // Se for edit e for *um* botão de edição que NÃO seja o edit-user-btn (usuário),
+    // então trata como edição de outros itens (metas/relatórios)
+    const editAction = e.target.closest('.action-btn.edit');
+    if (editAction && !editAction.classList.contains('edit-user-btn')) {
+        const id = editAction.dataset.id;
+        console.log('Editar item (não usuário):', id);
+        // implementação para metas/reports (abrir modal específico) — placeholder:
+        // openModal('editGoalModal') // se existir o modal
+        return;
     }
 
-    if (e.target.closest('.action-btn.view')) {
-        // Lógica para visualizar o item (A ser implementada)
-        alert('Abrir visualização para este item (A ser implementado com a API de GET por ID)');
+    // Igual para visualizar item — ignora view-user-btn (usuário)
+    const viewAction = e.target.closest('.action-btn.view');
+    if (viewAction && !viewAction.classList.contains('view-user-btn')) {
+        const id = viewAction.dataset.id;
+        console.log('Visualizar item (não usuário):', id);
+        // openModal('viewGoalModal') // se existir um modal de visualização de metas
+        return;
     }
 });
 
@@ -539,13 +564,145 @@ document.getElementById('addUserBtn').addEventListener('click', () => {
     alert('Abrir formulário para adicionar novo usuário (A ser implementado com a API de POST)');
 });
 
-// Botões do perfil
-document.getElementById('editAdminProfileBtn').addEventListener('click', () => {
-    alert('Abrir editor de perfil do administrador (A ser implementado com a API de PUT para admins)');
+// Fechar menu ao clicar fora (em telas pequenas)
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 992 &&
+        !adminSidebar.contains(e.target) &&
+        e.target !== mobileMenuBtn &&
+        adminSidebar.classList.contains('open')) {
+        adminSidebar.classList.remove('open');
+    }
 });
 
-document.getElementById('changePasswordBtn').addEventListener('click', () => {
-    alert('Abrir formulário para alterar senha (A ser implementado)');
+// Ajustar o layout ao redimensionar a janela
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 992) {
+        adminSidebar.classList.remove('open');
+    }
+});
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    // Carrega perfil do admin caso exista token/adminData
+    fetchAdminProfile().catch(console.error);
+    loadFinancesReport();
+});
+
+async function loadFinancesReport() {
+    const tbody = document.getElementById('financesTbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="6">Carregando...</td></tr>`;
+    try {
+        const res = await fetch(`${API_BASE_URL}/reports/finances`);
+         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+         const data = await res.json(); // espera um array de objetos
+         renderFinances(data || []);
+     } catch (err) {
+         tbody.innerHTML = `<tr><td colspan="6">Erro ao carregar relatórios: ${err.message}</td></tr>`;
+         console.error('loadFinancesReport:', err);
+     }
+}
+
+function renderFinances(reports) {
+    const tbody = document.getElementById('financesTbody');
+    if (!tbody) return;
+    if (!reports.length) {
+        tbody.innerHTML = `<tr><td colspan="6">Nenhum relatório disponível.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = reports.map(r => {
+        const totalSaved = formatCurrency(r.totalSaved || 0);
+        return `
+            <tr>
+                <td>${escapeHtml(r.period)}</td>
+                <td>${r.newUsers ?? 0}</td>
+                <td>${r.goalsCreated ?? 0}</td>
+                <td>${r.goalsCompleted ?? 0}</td>
+                <td>${totalSaved}</td>
+                <td>
+                    <button class="action-btn view" data-period="${escapeHtml(r.period)}"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn download" data-period="${escapeHtml(r.period)}"><i class="fas fa-download"></i></button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function formatCurrency(value) {
+    // Formata para BRL. value em centavos ou reais — adapte conforme sua API.
+    const number = Number(value) || 0;
+    return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/*
+ * Funções globais de modal (definidas cedo para evitar "is not defined")
+ */
+function openModal(modalId) {
+    const overlay = document.getElementById(modalId);
+    if (!overlay) {
+        console.warn(`openModal: overlay "${modalId}" not found`);
+        return;
+    }
+    // forçar visibilidade do overlay
+    overlay.style.display = 'flex';
+    // pequeno timeout para permitir transições CSS
+    setTimeout(() => overlay.classList.add('open'), 10);
+    const dialog = overlay.querySelector('.modal');
+    if (dialog) dialog.classList.add('open');
+    document.body.classList.add('modal-open');
+
+    // focar o primeiro elemento de entrada
+    setTimeout(() => {
+        const focusable = overlay.querySelector('input:not([type="hidden"]), textarea, select, button');
+        if (focusable) focusable.focus();
+    }, 100);
+
+    console.log('Abrindo modal:', modalId);
+}
+
+function closeModal(modalId) {
+    const overlay = document.getElementById(modalId);
+    if (!overlay) {
+        console.warn(`closeModal: overlay "${modalId}" not found`);
+        return;
+    }
+    overlay.classList.remove('open');
+    const dialog = overlay.querySelector('.modal');
+    if (dialog) dialog.classList.remove('open');
+
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        const anyOpen = Array.from(document.querySelectorAll('.modal-overlay.open')).length > 0;
+        if (!anyOpen) document.body.classList.remove('modal-open');
+    }, 160);
+
+    console.log('Fechando modal:', modalId);
+}
+
+// Garante que as funções estejam disponíveis no escopo global (opcional)
+window.openModal = openModal;
+window.closeModal = closeModal;
+
+// Handler genérico para abrir modais com data-modal-target (mantém padrão DRY)
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-modal-target]');
+    if (btn) {
+        e.preventDefault();
+        const target = btn.dataset.modalTarget;
+        if (target) {
+            openModal(target);
+        }
+    }
 });
 
 // Fechar menu ao clicar fora (em telas pequenas)
@@ -650,7 +807,597 @@ fetch(`${API_BASE_URL}/reports/finances`, {
     totalSaved
   }])
 })
-.then(res => res.json())
+.then(res => {
+    if (!res.ok) {
+        // tenta ler texto para log, evita parse JSON de HTML e SyntaxError
+        return res.text().then(text => {
+            console.warn(`Relatórios POST retornou HTTP ${res.status}:`, text);
+            throw new Error(`HTTP ${res.status}`);
+        });
+    }
+    return res.json();
+})
 .then(data => console.log('Dados enviados com sucesso:', data))
 .catch(err => console.error('Erro ao enviar dados:', err));
+
+// Modal helper utilities and basic modal behavior
+document.addEventListener('DOMContentLoaded', () => {
+    const body = document.body;
+    const modalOverlays = document.querySelectorAll('.modal-overlay');
+
+    function openModal(modalId) {
+        const overlay = document.getElementById(modalId);
+        if (!overlay) return;
+        overlay.style.display = 'flex';
+        // small delay to allow CSS transitions if present
+        setTimeout(() => {
+            overlay.classList.add('open');
+            const dialog = overlay.querySelector('.modal');
+            if (dialog) dialog.classList.add('open');
+        }, 10);
+
+        document.body.classList.add('modal-open');
+
+        // focus first focusable element inside dialog
+        setTimeout(() => {
+            const focusable = overlay.querySelector('input, textarea, button, select, [tabindex]:not([tabindex="-1"])');
+            if (focusable) focusable.focus();
+        }, 200);
+    }
+
+    function closeModal(modalId) {
+        const overlay = document.getElementById(modalId);
+        if (!overlay) return;
+        overlay.classList.remove('open');
+        const dialog = overlay.querySelector('.modal');
+        if (dialog) dialog.classList.remove('open');
+
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            const anyOpen = Array.from(document.querySelectorAll('.modal-overlay')).some(o => o.classList.contains('open'));
+            if (!anyOpen) document.body.classList.remove('modal-open');
+        }, 170);
+    }
+
+    function closeAllModals() {
+        modalOverlays.forEach(o => {
+            o.classList.remove('open');
+            o.style.display = 'none';
+        });
+        body.classList.remove('modal-open');
+    }
+
+    // Open modal by data-modal-target attribute
+    document.querySelectorAll('[data-modal-target]').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            console.log('Abrindo modal:', btn.dataset.modalTarget);
+            const target = btn.dataset.modalTarget;
+            if (!target) return;
+            if (target === 'editProfileModal') {
+                fillProfileFormFromProfile?.();
+            }
+            openModal(target);
+        });
+    });
+
+    // open search modal buttons (class)
+    document.querySelectorAll('.open-search-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal('searchModal');
+        });
+    });
+
+    // overlay click closes when clicking outside modal
+    modalOverlays.forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('open');
+                overlay.style.display = 'none';
+                body.classList.remove('modal-open');
+            }
+        });
+    });
+
+    // close buttons (×) and cancel actions
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.matches('.modal-close') || target.closest('.modal-close') || target.matches('.confirm-btn.cancel')) {
+            const overlay = target.closest('.modal-overlay');
+            if (overlay) {
+                closeModal(overlay.id);
+            }
+        }
+    });
+
+    // ESC closes modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAllModals();
+    });
+
+    // --------------------------
+    // Form handling: Edit Profile
+    const editProfileForm = document.getElementById('editProfileForm');
+    const editProfileError = document.getElementById('editProfileError');
+
+    function fillProfileFormFromProfile() {
+        const name = document.getElementById('profileName')?.textContent || '';
+        const profileFullName = document.getElementById('profileFullName')?.textContent || '';
+        const email = document.getElementById('profileEmail')?.textContent || '';
+        const role = document.getElementById('profileRole')?.textContent || '';
+        const joinDate = document.getElementById('profileJoinDate')?.textContent || '';
+
+        document.getElementById('editFullName').value = profileFullName || name;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editJoinDate').value = joinDate;
+        if (editProfileError) editProfileError.style.display = 'none';
+    }
+
+    if (editProfileForm) {
+        editProfileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const form = e.target;
+            // Simple validation
+            if (!form.checkValidity()) {
+                editProfileError.textContent = 'Preencha corretamente os campos.';
+                editProfileError.style.display = 'block';
+                return;
+            }
+            // Apply edits to profile UI
+            const fullName = document.getElementById('editFullName').value;
+            const email = document.getElementById('editEmail').value;
+
+            const profileNameEl = document.getElementById('profileName');
+            const profileFullNameEl = document.getElementById('profileFullName');
+            const profileEmailEl = document.getElementById('profileEmail');
+
+            if (fullName) {
+                if (profileNameEl) profileNameEl.textContent = fullName.split(' ')[0];
+                if (profileFullNameEl) profileFullNameEl.textContent = fullName;
+            }
+            if (email && profileEmailEl) profileEmailEl.textContent = email;
+
+            // Close and show success (console)
+            console.log('Perfil atualizado (simulado).', { fullName, email });
+            closeModal('editProfileModal');
+        });
+    }
+
+    // --------------------------
+    // Add User Form (basic)
+    const addUserForm = document.getElementById('addUserForm');
+    const addUserError = document.getElementById('addUserError');
+    if (addUserForm) {
+        addUserForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const pass = document.getElementById('addUserPassword').value;
+            const passConfirm = document.getElementById('addUserPasswordConfirm').value;
+
+            if (pass !== passConfirm) {
+                addUserError.textContent = 'Senhas não conferem.';
+                addUserError.style.display = 'block';
+                return;
+            }
+            addUserError.style.display = 'none';
+
+            // Simulação de criação de usuário: aqui deveria chamar API
+            console.log('Criar usuário (simulado):', {
+                fullName: document.getElementById('addUserFullName').value,
+                email: document.getElementById('addUserEmail').value,
+            });
+            closeModal('addUserModal');
+            addUserForm.reset();
+        });
+    }
+
+    // --------------------------
+    // Edit User Form (basic)
+    const editUserForm = document.getElementById('editUserForm');
+    const editUserError = document.getElementById('editUserError');
+    if (editUserForm) {
+        editUserForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Basic validation
+            if (!editUserForm.checkValidity()) {
+                editUserError.textContent = 'Preencha corretamente os campos.';
+                editUserError.style.display = 'block';
+                return;
+            }
+            editUserError.style.display = 'none';
+            console.log('Editar usuário (simulado).');
+            closeModal('editUserModal');
+        });
+    }
+
+    // --------------------------
+    // Change Password Form
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    const changePasswordError = document.getElementById('changePasswordError');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPass = document.getElementById('currentPassword').value.trim();
+            const newPass = document.getElementById('newPassword').value.trim();
+            const confirm = document.getElementById('confirmNewPassword').value.trim();
+
+            if (newPass.length < 8) {
+                changePasswordError.textContent = 'A nova senha deve ter pelo menos 8 caracteres.';
+                changePasswordError.style.display = 'block';
+                return;
+            }
+            if (newPass !== confirm) {
+                changePasswordError.textContent = 'As senhas não coincidem.';
+                changePasswordError.style.display = 'block';
+                return;
+            }
+
+            changePasswordError.style.display = 'none';
+
+            try {
+                // Tente enviar para a API — ajuste endpoint conforme backend
+                const adminId = currentAdmin?.Usuario_Id || currentAdmin?.id || null;
+                // favor ajustar endpoint se necessário; aqui usamos /auth/change-password
+                const endpoint = `${API_BASE_URL}/auth/change-password${adminId ? '?id=' + adminId : ''}`;
+
+                const headers = { 'Content-Type': 'application/json' };
+                const token = localStorage.getItem('adminToken');
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const resp = await fetch(endpoint, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        currentPassword: currentPass,
+                        newPassword: newPass
+                    })
+                });
+
+                if (!resp.ok) {
+                    // tenta obter mensagem do servidor
+                    let payload;
+                    try {
+                        payload = await resp.json();
+                    } catch {
+                        payload = await resp.text();
+                    }
+                    throw new Error((payload && payload.message) || payload || `HTTP ${resp.status}`);
+                }
+
+                // opcionalmente ler retorno
+                try { await resp.json(); } catch {}
+
+                // feedback de sucesso — atualize conforme queira (toast, elemento DOM)
+                console.log('Senha alterada com sucesso (simulado).');
+
+                closeModal('changePasswordModal');
+                changePasswordForm.reset();
+            } catch (err) {
+                console.error('Erro ao alterar senha:', err);
+                changePasswordError.textContent = String(err.message || err || 'Erro ao alterar senha.');
+                changePasswordError.style.display = 'block';
+            }
+        });
+    }
+
+    // --------------------------
+    // View/Edit user via event delegation (works if rows/buttons include dataset attributes)
+    document.addEventListener('click', (e) => {
+        const viewBtn = e.target.closest('.view-user-btn');
+        if (viewBtn) {
+            const ds = viewBtn.dataset;
+            console.log('view-user-btn clicked', ds); // <-- novo log para depuração
+            document.getElementById('viewUserName').textContent = ds.name || 'Nome do Usuário';
+            document.getElementById('viewUserRole').textContent = ds.role || 'Cargo';
+            document.getElementById('viewUserEmail').textContent = ds.email || '';
+            document.getElementById('viewUserPhone').textContent = ds.phone || '';
+            document.getElementById('viewUserJoinDate').textContent = ds.joinDate || '';
+            document.getElementById('viewUserLastLogin').textContent = ds.lastLogin || '';
+            openModal('viewUserModal');
+            return;
+        }
+        const editBtn = e.target.closest('.edit-user-btn');
+        if (editBtn) {
+            const ds = editBtn.dataset;
+            // atribui id para o overlay para ser usado no submit
+            const overlay = document.getElementById('editUserModal');
+            if (overlay) overlay.dataset.userId = ds.id || editBtn.dataset.id || '';
+
+            document.getElementById('editUserFullName').value = ds.name || '';
+            document.getElementById('editUserEmail').value = ds.email || '';
+            document.getElementById('editUserPhone').value = ds.phone || '';
+            document.getElementById('editUserRole').value = ds.role || '';
+            document.getElementById('editUserStatus').value = ds.status || 'Ativo';
+            document.getElementById('editUserJoinDate').value = ds.joinDate || '';
+            if (editUserError) editUserError.style.display = 'none';
+            openModal('editUserModal');
+            return;
+        }
+    });
+
+    // Close view user modal with either close button ID (there are two close buttons)
+    const closeViewButtons = [document.getElementById('closeViewUserBtn'), document.getElementById('closeViewUserBtn2')];
+    closeViewButtons.forEach(btn => {
+        if (btn) btn.addEventListener('click', () => closeModal('viewUserModal'));
+    });
+
+    // You can add additional initialization for the Search form behavior
+    const searchForm = document.getElementById('searchForm');
+    const searchResults = document.getElementById('searchResults');
+    if (searchForm) {
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const q = document.getElementById('searchQuery').value.trim();
+            const scope = document.getElementById('searchScope').value;
+            if (!q) {
+                document.getElementById('searchError').textContent = 'Digite algo para buscar.';
+                document.getElementById('searchError').style.display = 'block';
+                return;
+            }
+            document.getElementById('searchError').style.display = 'none';
+            // Simulated search results
+            searchResults.innerHTML = `<div style="padding: 0.6rem;">Resultados simulados para "${q}" em "${scope}"</div>`;
+        });
+    }
+});
+
+(function () {
+    // Minimal modal helpers for edit profile
+    function openModalById(modalId) {
+        const overlay = document.getElementById(modalId);
+        if (!overlay) return;
+        overlay.style.display = 'flex';
+        requestAnimationFrame(() => {
+            overlay.classList.add('open');
+            const modal = overlay.querySelector('.modal');
+            if (modal) modal.classList.add('open');
+        });
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModalById(modalId) {
+        const overlay = document.getElementById(modalId);
+        if (!overlay) return;
+        overlay.classList.remove('open');
+        const modal = overlay.querySelector('.modal');
+        if (modal) modal.classList.remove('open');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            // If no other modal open, remove modal-open
+            const anyOpen = document.querySelectorAll('.modal-overlay.open').length > 0;
+            if (!anyOpen) document.body.classList.remove('modal-open');
+        }, 170);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const editBtn = document.getElementById('editAdminProfileBtn');
+        const editModalOverlay = document.getElementById('editProfileModal');
+        const editForm = document.getElementById('editProfileForm');
+        const cancelBtn = document.getElementById('cancelEditProfileBtn');
+        const closeBtn = document.getElementById('closeEditProfileBtn');
+        const errorEl = document.getElementById('editProfileError');
+
+        function fillEditProfileForm() {
+            const name = document.getElementById('profileName')?.textContent || '';
+            const fullName = document.getElementById('profileFullName')?.textContent || name;
+            const email = document.getElementById('profileEmail')?.textContent || '';
+            const role = document.getElementById('profileRole')?.textContent || '';
+            const joinDate = document.getElementById('profileJoinDate')?.textContent || '';
+
+            const elFullName = document.getElementById('editFullName');
+            const elEmail = document.getElementById('editEmail');
+            const elRole = document.getElementById('editRole');
+            const elJoinDate = document.getElementById('editJoinDate');
+
+            if (elFullName) elFullName.value = fullName;
+            if (elEmail) elEmail.value = email;
+            if (elRole) elRole.value = role;
+            if (elJoinDate) elJoinDate.value = joinDate;
+            if (errorEl) errorEl.style.display = 'none';
+        }
+
+        // open
+        if (editBtn) {
+            editBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                fillEditProfileForm();
+                openModalById('editProfileModal');
+            });
+        }
+
+        // close handlers
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeModalById('editProfileModal');
+            });
+        }
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => closeModalById('editProfileModal'));
+        }
+        if (editModalOverlay) {
+            editModalOverlay.addEventListener('click', (e) => {
+                if (e.target === editModalOverlay) closeModalById('editProfileModal');
+            });
+        }
+
+        // ESC to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (editModalOverlay && editModalOverlay.style.display === 'flex') {
+                    closeModalById('editProfileModal');
+                }
+            }
+        });
+
+        // Submit (simulated)
+        if (editForm) {
+            editForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (!editForm.checkValidity()) {
+                    if (errorEl) {
+                        errorEl.textContent = 'Preencha corretamente os campos.';
+                        errorEl.style.display = 'block';
+                    }
+                    return;
+                }
+                const newFullName = document.getElementById('editFullName').value.trim();
+                const newEmail = document.getElementById('editEmail').value.trim();
+
+                if (!newFullName || !newEmail) {
+                    if (errorEl) {
+                        errorEl.textContent = 'Nome e email são obrigatórios.';
+                        errorEl.style.display = 'block';
+                    }
+                    return;
+                }
+
+                // Atualiza UI (simulando persistência)
+                const profileNameEl = document.getElementById('profileName');
+                const profileFullNameEl = document.getElementById('profileFullName');
+                const profileEmailEl = document.getElementById('profileEmail');
+                const adminAvatar = document.getElementById('adminAvatar');
+
+                if (profileFullNameEl) profileFullNameEl.textContent = newFullName;
+                if (profileEmailEl) profileEmailEl.textContent = newEmail;
+                if (profileNameEl) profileNameEl.textContent = newFullName.split(' ')[0] || newFullName;
+                if (adminAvatar) adminAvatar.textContent = (newFullName[0] || 'A').toUpperCase();
+
+                // Aqui: fazer fetch para atualizar no backend, se desejar.
+
+                closeModalById('editProfileModal');
+            });
+        }
+    });
+})();
+
+// Dentro do bloco DOMContentLoaded já existente, o handler para editar usuário já preenche campos.
+// Aperfeiçoe o preenchimento (salva o userId no overlay) e implemente PUT no submit:
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Este bloco já existe, mas garanta que ao abrir o modal seja definido o userId no overlay
+    document.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.edit-user-btn');
+        if (editBtn) {
+            const ds = editBtn.dataset;
+            // atribui id para o overlay para ser usado no submit
+            const overlay = document.getElementById('editUserModal');
+            if (overlay) overlay.dataset.userId = ds.id || editBtn.dataset.id || '';
+
+            document.getElementById('editUserFullName').value = ds.name || '';
+            document.getElementById('editUserEmail').value = ds.email || '';
+            document.getElementById('editUserPhone').value = ds.phone || '';
+            document.getElementById('editUserRole').value = ds.role || '';
+            document.getElementById('editUserStatus').value = ds.status || 'Ativo';
+            document.getElementById('editUserJoinDate').value = ds.joinDate || '';
+            if (editUserError) editUserError.style.display = 'none';
+            openModal('editUserModal');
+            return;
+        }
+    });
+
+    // Hook para salvar edição de usuário via API (PUT)
+    const editUserForm = document.getElementById('editUserForm');
+    const editUserError = document.getElementById('editUserError');
+
+    if (editUserForm) {
+        editUserForm.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            if (!editUserForm.checkValidity()) {
+                editUserError.textContent = 'Preencha corretamente os campos.';
+                editUserError.style.display = 'block';
+                return;
+            }
+
+            const overlay = document.getElementById('editUserModal');
+            const userId = overlay?.dataset?.userId || document.getElementById('editUserId')?.value;
+            if (!userId) {
+                editUserError.textContent = 'Usuário não identificado.';
+                editUserError.style.display = 'block';
+                return;
+            }
+
+            const payload = {
+                Usuario_Nome: document.getElementById('editUserFullName').value.trim(),
+                Usuario_Email: document.getElementById('editUserEmail').value.trim(),
+                Usuario_Telefone: document.getElementById('editUserPhone').value.trim(),
+                Usuario_Cargo: document.getElementById('editUserRole').value.trim(),
+                Usuario_Status: document.getElementById('editUserStatus').value
+            };
+
+            try {
+                // PUT para atualizar usuário (ajuste body de acordo com seu backend)
+                const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Authorization: `Bearer ${localStorage.getItem('adminToken')}` // se necessário
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const text = await res.text().catch(() => null);
+                    throw new Error(text || `HTTP ${res.status}`);
+                }
+
+                const updated = await res.json().catch(() => null);
+
+                // Atualiza a linha da tabela ou recarrega lista
+                const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                if (row) {
+                    // Atualiza elementos da linha (nome, email, avatar)
+                    const nameEl = row.querySelector('.user-name');
+                    const emailEl = row.querySelector('.user-email');
+                    const avatarEl = row.querySelector('.user-avatar');
+                    if (nameEl) nameEl.textContent = payload.Usuario_Nome;
+                    if (emailEl) emailEl.textContent = payload.Usuario_Email;
+                    if (avatarEl) avatarEl.textContent = (payload.Usuario_Nome[0] || 'U').toUpperCase();
+                } else {
+                    // fallback: recarrega a lista
+                    fetchUsers();
+                }
+
+                closeModal('editUserModal');
+            } catch (err) {
+                console.error('Erro ao atualizar usuário:', err);
+                editUserError.textContent = 'Erro ao salvar. Veja console para detalhes.';
+                editUserError.style.display = 'block';
+            }
+        });
+    }
+
+    // Cancel / close for edit user modal (IDs from HTML)
+    const cancelEditUserBtn = document.getElementById('cancelEditUserBtn');
+    const closeEditUserModalBtn = document.getElementById('closeEditUserModalBtn');
+    if (cancelEditUserBtn) cancelEditUserBtn.addEventListener('click', () => closeModal('editUserModal'));
+    if (closeEditUserModalBtn) closeEditUserModalBtn.addEventListener('click', () => closeModal('editUserModal'));
+
+    // close on overlay click added in modal helper utility — already present
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const changePasswordModal = document.getElementById('changePasswordModal');
+    // Debug: garante que elementos existam
+    console.log('Btns/overlays presentes:', !!changePasswordBtn, !!changePasswordModal);
+
+    if (!changePasswordBtn) {
+        console.warn('changePasswordBtn não encontrado no DOM.');
+        return;
+    }
+    changePasswordBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('click changePasswordBtn');
+        if (!changePasswordModal) {
+            console.warn('changePasswordModal overlay não encontrado.');
+            alert('Modal não configurado no HTML.');
+            return;
+        }
+        openModal('changePasswordModal');
+    });
+
+    // já existe lógica para fechar (botões e overlay) no resto do arquivo
+});
 

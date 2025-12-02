@@ -230,7 +230,7 @@
                                 <div>
                                     <h2 id="profileName" style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--primary-color);">Admin</h2>
                                     <p id="profileRole" style="color: var(--text-light); margin-bottom: 1rem;">Administrador do Sistema</p>
-                                    <button class="profile-btn primary" id="editAdminProfileBtn">
+                                    <button class="profile-btn primary" id="editAdminProfileBtn" data-modal-target="editProfileModal">
                                         <i class="fas fa-edit" style="margin-right: 8px;"></i>Editar Perfil
                                     </button>
                                 </div>
@@ -265,7 +265,7 @@
                                     </div>
                                     <div style="margin-bottom: 1.5rem;">
                                         <p style="color: var(--text-light); font-size: 0.9rem;">Alterar senha</p>
-                                        <button class="profile-btn secondary" id="changePasswordBtn">
+                                        <button class="profile-btn secondary" id="changePasswordBtn" data-modal-target="changePasswordModal">
                                             <i class="fas fa-key" style="margin-right: 8px;"></i>Alterar Senha
                                         </button>
                                     </div>
@@ -289,6 +289,180 @@
             </div>
         </div>
     </div>
+
+     <!-- Modal de editar perfil do admin-->
+    <div class="modal-overlay" id="editProfileModal" style="display:none;">
+        <div class="modal edit-profile-modal" role="dialog" aria-modal="true" aria-labelledby="editProfileTitle">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap: 1rem;">
+                <h3 id="editProfileTitle">Editar Perfil</h3>
+                <button class="modal-close" id="closeEditProfileBtn" aria-label="Fechar">&times;</button>
+            </div>
+
+            <form id="editProfileForm" class="modal-form" novalidate>
+                <div class="form-row">
+                    <label for="editFullName">Nome completo</label>
+                    <input type="text" id="editFullName" name="fullName" required minlength="2" />
+                </div>
+                <div class="form-row">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" name="email" required />
+                </div>
+                <div class="form-row">
+                    <label for="editRole">Cargo</label>
+                    <input type="text" id="editRole" name="role" readonly />
+                </div>
+
+                <div class="form-row">
+                    <label for="editJoinDate">Data de registro</label>
+                    <input type="text" id="editJoinDate" name="joinDate" readonly />
+                </div>
+
+                <div class="form-error" id="editProfileError" aria-live="polite" style="display:none;"></div>
+
+                <div class="modal-actions">
+                    <button type="button" class="confirm-btn cancel" id="cancelEditProfileBtn">Cancelar</button>
+                    <button type="submit" class="confirm-btn confirm" id="submitEditProfileBtn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de visualizar usuario -->
+    <div class="modal-overlay" id="viewUserModal" style="display:none;">
+        <div class="modal view-user-modal" role="dialog" aria-modal="true" aria-labelledby="viewUserTitle">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap: 1rem;">
+                <h3 id="viewUserTitle">Visualizar Usuário</h3>
+                <button class="modal-close" id="closeViewUserBtn" aria-label="Fechar">&times;</button>
+            </div>
+
+            <div class="view-user-body" style="display:grid; grid-template-columns: 84px 1fr; gap: 1rem; align-items:center; margin-top: 0.6rem;">
+                <div style="display:flex; align-items:center; justify-content:center;">
+                    <div class="sidebar-avatar profile-avatar" id="viewUserAvatar" style="width:72px; height:72px; font-size:1.6rem;">U</div>
+                </div>
+
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="margin-bottom: 0.35rem;">
+                            <div id="viewUserName" style="font-weight:700; font-size:1.05rem;">Nome do Usuário</div>
+                            <div id="viewUserRole" style="color:var(--text-light); font-size:0.9rem;">Cargo / Perfil</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div id="viewUserEmail" style="font-weight:600; color:var(--primary-color);"></div>
+                            <div id="viewUserPhone" style="font-size:0.85rem; color:var(--text-light);"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 0.75rem; display:flex; gap:1rem; flex-wrap:wrap;">
+                        <div style="min-width:160px;">
+                            <div style="font-size:0.85rem; color:var(--text-light)">Data de registro</div>
+                            <div id="viewUserJoinDate" style="font-weight:600;"></div>
+                        </div>
+                        <div style="min-width:160px;">
+                            <div style="font-size:0.85rem; color:var(--text-light)">Último login</div>
+                            <div id="viewUserLastLogin" style="font-weight:600;"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-error" id="viewUserError" style="display:none; margin-top:0.75rem;"></div>
+
+                    <div style="margin-top: 1rem; display:flex; gap:0.5rem; justify-content:flex-end;">
+                        <button class="confirm-btn cancel" id="closeViewUserBtn2">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de editar usuario -->
+    <div class="modal-overlay" id="editUserModal" style="display:none;">
+        <div class="modal edit-user-modal" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap: 1rem;">
+                <h3 id="editUserTitle">Editar Usuário</h3>
+                <button class="modal-close" id="closeEditUserModalBtn" aria-label="Fechar">&times;</button>
+            </div>
+
+            <form id="editUserForm" class="modal-form" novalidate>
+                <input type="hidden" id="editUserId" />
+
+                <div class="form-row">
+                    <label for="editUserFullName">Nome completo</label>
+                    <input type="text" id="editUserFullName" name="fullName" required minlength="2" />
+                </div>
+
+                <div class="form-row">
+                    <label for="editUserEmail">Email</label>
+                    <input type="email" id="editUserEmail" name="email" required />
+                </div>
+
+                <div class="form-row">
+                    <label for="editUserPhone">Telefone</label>
+                    <input type="text" id="editUserPhone" name="phone" />
+                </div>
+
+                <div class="form-row">
+                    <label for="editUserRole">Cargo</label>
+                    <input type="text" id="editUserRole" name="role" />
+                </div>
+
+                <div class="form-row">
+                    <label for="editUserStatus">Status</label>
+                    <select id="editUserStatus" name="status">
+                        <option value="Ativo">Ativo</option>
+                        <option value="Inativo">Inativo</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label for="editUserJoinDate">Data de registro</label>
+                    <input type="text" id="editUserJoinDate" name="joinDate" readonly />
+                </div>
+
+                <div class="form-error" id="editUserError" aria-live="polite" style="display:none;"></div>
+
+                <div class="modal-actions">
+                    <button type="button" class="confirm-btn cancel" id="cancelEditUserBtn">Cancelar</button>
+                    <button type="submit" class="confirm-btn confirm" id="submitEditUserBtn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de alterar senha do admin -->
+    <div class="modal-overlay" id="changePasswordModal" style="display:none;">
+        <div class="modal change-password-modal" role="dialog" aria-modal="true" aria-labelledby="changePasswordTitle">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap: 1rem;">
+                <h3 id="changePasswordTitle">Alterar senha</h3>
+                <button class="modal-close" id="closeChangePasswordBtn" aria-label="Fechar">&times;</button>
+            </div>
+
+            <form id="changePasswordForm" class="modal-form" novalidate>
+                <div class="form-row">
+                    <label for="currentPassword">Senha atual</label>
+                    <input type="password" id="currentPassword" name="currentPassword" required minlength="6" autocomplete="current-password" />
+                </div>
+
+                <div class="form-row">
+                    <label for="newPassword">Nova senha</label>
+                    <input type="password" id="newPassword" name="newPassword" required minlength="8" autocomplete="new-password" />
+                </div>
+
+                <div class="form-row">
+                    <label for="confirmNewPassword">Confirmar nova senha</label>
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" required minlength="8" autocomplete="new-password" />
+                </div>
+
+                <div class="form-error" id="changePasswordError" aria-live="polite" style="display:none;"></div>
+
+                <div class="modal-actions">
+                    <button type="button" class="confirm-btn cancel" id="cancelChangePasswordBtn">Cancelar</button>
+                    <button type="submit" class="confirm-btn confirm" id="submitChangePasswordBtn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de adicionar novo usuario -->
+
 
 </body>
 <script src="assets/js/admin.js"></script>
