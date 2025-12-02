@@ -1401,3 +1401,106 @@ document.addEventListener('DOMContentLoaded', () => {
     // já existe lógica para fechar (botões e overlay) no resto do arquivo
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Handlers para o modal "Adicionar Usuário"
+    const addUserBtn = document.getElementById('addUserBtn');
+    const addUserModal = document.getElementById('addUserModal');
+    const addUserForm = document.getElementById('addUserForm');
+    const cancelAddUserBtn = document.getElementById('cancelAddUserBtn');
+    const closeAddUserModalBtn = document.getElementById('closeAddUserModalBtn');
+    const addUserError = document.getElementById('addUserError');
+
+    if (addUserBtn) {
+        // Se usar data-modal-target, o handler genérico abrirá o modal.
+        addUserBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (addUserForm) addUserForm.reset();
+            if (addUserError) addUserError.style.display = 'none';
+            openModal('addUserModal');
+        });
+    }
+
+    // Fecha modal ao clicar no X ou em cancelar
+    if (cancelAddUserBtn) cancelAddUserBtn.addEventListener('click', () => closeModal('addUserModal'));
+    if (closeAddUserModalBtn) closeAddUserModalBtn.addEventListener('click', () => closeModal('addUserModal'));
+
+    // Fechar ao clicar no overlay
+    if (addUserModal) {
+        addUserModal.addEventListener('click', (e) => {
+            if (e.target === addUserModal) closeModal('addUserModal');
+        });
+    }
+
+    // Submit: valida e cria via API (ou simula)
+    if (addUserForm) {
+        addUserForm.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            if (!addUserForm.checkValidity()) {
+                addUserError.textContent = 'Preencha corretamente os campos.';
+                addUserError.style.display = 'block';
+                return;
+            }
+
+            const fullName = document.getElementById('addUserFullName').value.trim();
+            const email = document.getElementById('addUserEmail').value.trim();
+            const phone = document.getElementById('addUserPhone').value.trim();
+            const role = document.getElementById('addUserRole').value.trim();
+            const status = document.getElementById('addUserStatus').value;
+            const password = document.getElementById('addUserPassword').value;
+            const passwordConfirm = document.getElementById('addUserPasswordConfirm').value;
+
+            if (password !== passwordConfirm) {
+                addUserError.textContent = 'As senhas não conferem.';
+                addUserError.style.display = 'block';
+                return;
+            }
+
+            addUserError.style.display = 'none';
+
+            const payload = {
+                Usuario_Nome: fullName,
+                Usuario_Email: email,
+                Usuario_Telefone: phone,
+                Usuario_Cargo: role,
+                Usuario_Status: status,
+                Usuario_Senha: password
+            };
+
+            try {
+                const token = localStorage.getItem('adminToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const resp = await fetch(`${API_BASE_URL}/users`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) {
+                    const text = await resp.text().catch(() => null);
+                    throw new Error(text || `HTTP ${resp.status}`);
+                }
+
+                // Se backend retornar JSON com o novo usuário
+                let created;
+                try { created = await resp.json(); } catch { created = null; }
+
+                console.log('Usuário criado com sucesso (simulado/ok):', created);
+
+                // Recarrega lista de usuários (fetchUsers já implementada)
+                if (typeof fetchUsers === 'function') {
+                    await fetchUsers();
+                }
+
+                closeModal('addUserModal');
+                addUserForm.reset();
+            } catch (err) {
+                console.error('Erro ao criar usuário:', err);
+                addUserError.textContent = String(err.message || 'Erro ao criar usuário.');
+                addUserError.style.display = 'block';
+            }
+        });
+    }
+});
+

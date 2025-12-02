@@ -883,6 +883,21 @@
             font-size: 0.95rem;
         }
 
+        /* Add-user modal tweaks */
+        .add-user-modal .form-row input,
+        .add-user-modal .form-row select {
+            font-size: 0.95rem;
+        }
+        .add-user-modal .modal-actions {
+            margin-top: 0.8rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        @media (max-width: 520px) {
+            .add-user-modal { padding: 0.9rem; width: 100%; }
+        }
+
         /* ajuste de largura para telas pequenas */
         @media (max-width: 520px) {
             .modal {
@@ -898,3 +913,60 @@
         .change-password-modal .form-error {
             margin-top: 0.55rem;
         }
+
+        /* ===== Botão de fechar do modal (.modal-close) ===== */
+.modal {
+    position: relative; /* garante posicionamento absoluto do botão dentro do modal */
+}
+
+/* Padrão do botão */
+.modal .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-light, #7b8894);
+    font-size: 1.2rem;
+    line-height: 1;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease, transform 120ms ease;
+}
+
+/* Hover / focus */
+.modal .modal-close:hover {
+    background: rgba(0,0,0,0.04);
+    color: var(--text, #111);
+    transform: translateY(-1px);
+}
+.modal .modal-close:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46,134,222,0.12); /* use var(--primary-color) se quiser */
+    color: var(--text, #111);
+}
+
+/* Versão invertida (opcional), caso precise de close mais visível em fundo escuro */
+.modal.dark .modal-close {
+    color: var(--bg, #fff);
+}
+.modal.dark .modal-close:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+/* Pequenas telas: botões maiores e mais fáceis de tocar */
+@media (max-width: 480px) {
+    .modal .modal-close {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+}
